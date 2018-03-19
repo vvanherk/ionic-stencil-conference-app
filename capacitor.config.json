@@ -1,0 +1,6 @@
+{
+  "appId": "ionic.conf.com",
+  "appName": "ionic-stencil-conf-app",
+  "bundledWebRuntime": false,
+  "webDir": "www"
+}
