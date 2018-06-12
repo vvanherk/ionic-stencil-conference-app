@@ -1,14 +1,15 @@
-import { Component } from '@stencil/core';
-import { UserData } from '../../providers/user-data';
+import { Component, Prop } from '@stencil/core';
+import Tunnel from '../../providers/state-tunnel';
 
 @Component({
   tag: 'page-tutorial',
   styleUrl: 'page-tutorial.css',
 })
 export class PageTutorial {
+  @Prop() showedTutorial: () => void;
 
   componentDidLoad() {
-    UserData.hasSeenTutorial(true);
+    this.showedTutorial();
   }
 
   render() {
@@ -64,3 +65,5 @@ export class PageTutorial {
     ];
   }
 }
+
+Tunnel.injectProps(PageTutorial, ['showedTutorial']);
