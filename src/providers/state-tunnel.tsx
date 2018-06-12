@@ -19,7 +19,7 @@ export default createProviderConsumer<State>({
     ...createActionDefaults(locationsActions),
     sessions: defaultSessionsState,
     ...createActionDefaults(sessionsActions),
-    speakers: defaultSpeakersState
+    speakers: defaultSpeakersState,
     ...createActionDefaults(speakersActions),
   },
   (subscribe, child) => (
