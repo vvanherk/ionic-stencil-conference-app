@@ -1,6 +1,11 @@
-import { Component, Prop, State } from '@stencil/core';
-import { ConferenceData } from '../../providers/conference-data';
-import { UserData } from '../../providers/user-data';
+import { Component, Prop } from '@stencil/core';
+import Tunnel from '../../providers/state-tunnel';
+import { SessionsState } from '../../providers/sessions-state';
+import dateFormat from '../../providers/dateformat';
+
+function formatTime(dateString, formatString) {
+  return dateFormat(new Date(dateString), formatString);
+}
 
 @Component({
   tag: 'page-session',
@@ -8,31 +13,25 @@ import { UserData } from '../../providers/user-data';
 })
 export class PageSession {
 
-  private session: any;
-  @State() isFavorite: boolean;
-  @Prop() sessionId: string;
+  @Prop() sessionId: number;
+  @Prop() sessions: SessionsState;
+  @Prop() addFavoriteSession: (sessionId: number) => void;
+  @Prop() removeFavoriteSession: (sessionId: number) => void;
   @Prop() goback = '/';
-
-  async componentWillLoad() {
-    this.session = await ConferenceData.getSession(this.sessionId);
-    this.isFavorite = UserData.hasFavorite(this.session.name);
-  }
 
   sessionClick(item: string) {
     console.log('Clicked', item);
   }
 
-  toggleFavorite() {
-    if (UserData.hasFavorite(this.session.name)) {
-      UserData.removeFavorite(this.session.name);
-      this.isFavorite = false;
-    } else {
-      UserData.addFavorite(this.session.name);
-      this.isFavorite = true;
+  toggleFavorite(sessionId: number) {
+    if (this.sessions.favoriteSessions.indexOf(sessionId) === -1) {
+      return this.addFavoriteSession(sessionId);
     }
+    this.removeFavoriteSession(sessionId);
   }
 
   render() {
+    const session = this.sessions.items.find(s => s.id === this.sessionId);
     return [
       <ion-header>
         <ion-toolbar>
@@ -47,27 +46,27 @@ export class PageSession {
           <ion-grid no-padding>
             <ion-row>
               <ion-col col-6>
-                {this.session.tracks.map(track =>
+                {session.tracks.map(track =>
                   <span class={{[`session-track-${track.toLowerCase()}`]: true}}>
                     { track }
                   </span>
                 )}
                 <div>Session {this.sessionId}</div>
               </ion-col>
-              <ion-col col-6 text-right class={this.isFavorite ? 'show-favorite' : ''}>
-                <ion-icon name="heart-empty" size="large" class="icon-heart-empty" onClick={() => this.toggleFavorite()}></ion-icon>
-                <ion-icon name="heart" color="danger" size="large" class="icon-heart" onClick={() => this.toggleFavorite()}></ion-icon>
+              <ion-col col-6 text-right class={(this.sessions.favoriteSessions.indexOf(session.id) !== -1) ? 'show-favorite' : ''}>
+                <ion-icon name="heart-empty" size="large" class="icon-heart-empty" onClick={() => this.toggleFavorite(session.id)}></ion-icon>
+                <ion-icon name="heart" color="danger" size="large" class="icon-heart" onClick={() => this.toggleFavorite(session.id)}></ion-icon>
               </ion-col>
             </ion-row>
           </ion-grid>
 
-          <h1>{this.session.name}</h1>
+          <h1>{session.name}</h1>
 
-          <p>{this.session.description}</p>
+          <p>{session.description}</p>
 
           <ion-text color="medium">
-            {this.session.timeStart} &ndash; {this.session.timeEnd}<br/>
-            {this.session.location}
+            {formatTime(session.dateTimeStart, 'h:MM tt')} &ndash; {formatTime(session.dateTimeEnd, 'h:MM tt')}<br/>
+            {session.location}
           </ion-text>
         </div>
 
@@ -93,3 +92,5 @@ export class PageSession {
     ];
   }
 }
+
+Tunnel.injectProps(PageSession, ['sessions', 'addFavoriteSession', 'removeFavoriteSession']);

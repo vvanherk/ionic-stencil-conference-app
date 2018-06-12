@@ -63,7 +63,6 @@ export class AppRoot {
   }
 
   async componentDidLoad() {
-    this.checkLoginStatus();
     try {
       await SplashScreen.hide();
     } catch {
