@@ -1,5 +1,6 @@
-import { Component, Event, EventEmitter, Prop, State } from '@stencil/core';
-import { UserData } from '../../providers/user-data';
+import { Component, Prop, State } from '@stencil/core';
+import Tunnel from '../../providers/state-tunnel';
+import { checkPassword, checkUsername } from '../../providers/user-state';
 
 
 @Component({
@@ -7,90 +8,41 @@ import { UserData } from '../../providers/user-data';
   styleUrl: 'page-login.css',
 })
 export class PageLogin {
-  @State() username = {
-    valid: false,
-    value: null
-  };
-  @State() password = {
-    valid: false,
-    value: null
-  };
-  @State() submitted = false;
   @Prop({connect: 'ion-nav'}) nav;
-  @Event() userDidLogIn: EventEmitter;
+  @State() username = '';
+  @State() usernameError = null;
+  @State() password = '';
+  @State() passwordError = null;
+
+  @Prop() logInUser: (username: string) => void;
+
   handleUsername(ev) {
-    this.validateUsername();
-    this.username = {
-      ...this.username,
-      value: ev.target.value
-    };
+    this.username = ev.target.value;
   }
 
   handlePassword(ev) {
-    this.validatePassword();
-    this.password.value = ev.target.value;
-    this.password = {
-      ...this.password,
-      value: ev.target.value
-    };
-  }
-
-  validateUsername() {
-    if (this.username.value && this.username.value.length > 0) {
-      this.username = {
-        ...this.username,
-        valid: true
-      };
-
-      return;
-    }
-
-    this.username = {
-      ...this.username,
-      valid: false
-    };
-  }
-
-  validatePassword() {
-    if (this.password.value && this.password.value.length > 0) {
-      this.password.valid = true;
-
-      this.password = {
-        ...this.password,
-        valid: true
-      };
-
-      return;
-    }
-
-    this.password = {
-      ...this.password,
-      valid: false
-    };
+    this.password = ev.target.value;
   }
 
   async onLogin(e) {
     e.preventDefault();
     const navCtrl: HTMLIonNavElement = await (this.nav as any).componentOnReady();
 
-    console.log('Clicked login');
-    this.validatePassword();
-    this.validateUsername();
+    this.usernameError = checkUsername(this.username);
+    this.passwordError = checkPassword(this.password);
 
-    this.submitted = true;
-
-    if (this.password.valid && this.username.valid) {
-      await UserData.login(this.username.value);
-
-      this.userDidLogIn.emit({loginStatus: true});
-      navCtrl.setRoot('page-tabs', null , {animated: true, direction: 'forward'});
+    if (this.usernameError || this.passwordError) {
+      return;
     }
+
+    this.logInUser(this.username);
+    navCtrl.setRoot('page-tabs', null , {animated: true, direction: 'forward'});
   }
 
   async onSignup(e) {
     e.preventDefault();
     const navCtrl: HTMLIonNavElement = await (this.nav as any).componentOnReady();
-    console.log('Clicked signup');
+
     navCtrl.push('page-signup');
   }
 
@@ -115,23 +67,23 @@ export class PageLogin {
           <ion-list no-lines>
             <ion-item>
               <ion-label position="stacked" color="primary">Username</ion-label>
-              <ion-input name="username" type="text" value={this.username.value} onInput={(ev) => this.handleUsername(ev)} spellcheck={false} autocapitalize="off" required></ion-input>
+              <ion-input name="username" type="text" value={this.username} onInput={(ev) => this.handleUsername(ev)} spellcheck={false} autocapitalize="off" required></ion-input>
             </ion-item>
 
             <ion-text color="danger">
-              <p hidden={this.username.valid || this.submitted === false} padding-left>
-                Username is required
+              <p hidden={this.usernameError} padding-left>
+                {this.usernameError}
               </p>
             </ion-text>
 
             <ion-item>
               <ion-label position="stacked" color="primary">Password</ion-label>
-              <ion-input name="password" type="password" value={this.password.value} onInput={(ev) => this.handlePassword(ev)} required></ion-input>
+              <ion-input name="password" type="password" value={this.password} onInput={(ev) => this.handlePassword(ev)} required></ion-input>
             </ion-item>
 
             <ion-text color="danger">
-              <p hidden={this.password.valid || this.submitted === false} padding-left>
-                Password is required
+              <p hidden={this.passwordError} padding-left>
+                {this.passwordError}
               </p>
             </ion-text>
           </ion-list>
@@ -151,3 +103,5 @@ export class PageLogin {
     ];
   }
 }
+
+Tunnel.injectProps(PageLogin, ['logInUser']);

@@ -1,84 +1,38 @@
-import { Component, State } from '@stencil/core';
-import { UserData } from '../../providers/user-data';
-
+import { Component, Prop, State } from '@stencil/core';
+import Tunnel from '../../providers/state-tunnel';
+import { checkPassword, checkUsername } from '../../providers/user-state';
 
 @Component({
   tag: 'page-signup',
   styleUrl: 'page-signup.css',
 })
 export class PageSignup {
-  @State() username = {
-    valid: false,
-    value: null
-  };
-  @State() password = {
-    valid: false,
-    value: null
-  };
-  @State() submitted = false;
+  @State() username = '';
+  @State() usernameError = null;
+  @State() password = '';
+  @State() passwordError = null;
+
+  @Prop() signUpUser: (userName: string) => void;
 
   handleUsername(ev) {
-    this.validateUsername();
-    this.username = {
-      ...this.username,
-      value: ev.target.value
-    };
+    this.username = ev.target.value;
   }
 
   handlePassword(ev) {
-    this.validatePassword();
-    this.password.value = ev.target.value;
-    this.password = {
-      ...this.password,
-      value: ev.target.value
-    };
-  }
-
-  validateUsername() {
-    if (this.username.value && this.username.value.length > 0) {
-      this.username = {
-        ...this.username,
-        valid: true
-      };
-
-      return;
-    }
-
-    this.username = {
-      ...this.username,
-      valid: false
-    };
-  }
-
-  validatePassword() {
-    if (this.password.value && this.password.value.length > 0) {
-      this.password.valid = true;
-
-      this.password = {
-        ...this.password,
-        valid: true
-      };
-
-      return;
-    }
-
-    this.password = {
-      ...this.password,
-      valid: false
-    };
+    this.password = ev.target.value;
   }
 
   onSignup(e) {
     e.preventDefault();
-    console.log('clicked signup');
-    this.validatePassword();
-    this.validateUsername();
 
-    this.submitted = true;
+    this.usernameError = checkUsername(this.username);
+    this.passwordError = checkPassword(this.password);
 
-    if (this.password.valid && this.username.valid) {
-      UserData.signup(this.username.value);
+    if (this.usernameError || this.passwordError) {
+      return;
     }
+
+    this.signUpUser(this.username);
   }
 
   render() {
@@ -102,23 +56,23 @@ export class PageSignup {
           <ion-list no-lines>
             <ion-item>
               <ion-label position="stacked" color="primary">Username</ion-label>
-              <ion-input name="username" type="text" value={this.username.value} onInput={(ev) => this.handleUsername(ev)} required>
+              <ion-input name="username" type="text" value={this.username} onInput={(ev) => this.handleUsername(ev)} required>
               </ion-input>
             </ion-item>
             <ion-text color="danger">
-              <p hidden={this.username.valid || this.submitted === false} padding-left>
-                Username is required
+              <p hidden={this.usernameError} padding-left>
+                {this.usernameError}
               </p>
             </ion-text>
 
             <ion-item>
               <ion-label position="stacked" color="primary">Password</ion-label>
-              <ion-input name="password" type="password" value={this.password.value} onInput={(ev) => this.handlePassword(ev)} required>
+              <ion-input name="password" type="password" value={this.password} onInput={(ev) => this.handlePassword(ev)} required>
               </ion-input>
             </ion-item>
             <ion-text color="danger">
-              <p hidden={this.password.valid || this.submitted === false} padding-left>
-                Password is required
+              <p hidden={this.passwordError} padding-left>
+                {this.passwordError}
               </p>
             </ion-text>
           </ion-list>
@@ -129,8 +83,8 @@ export class PageSignup {
         </form>
 
       </ion-content>
-
-
     ];
   }
 }
+
+Tunnel.injectProps(PageSignup, 'signUpUser');

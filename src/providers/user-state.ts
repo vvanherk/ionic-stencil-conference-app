@@ -56,3 +56,17 @@ export const actions: UserActions = {
   }
 };
 
+
+export function checkUsername(username: string): string | null {
+  if (!username) {
+    return 'Username is required';
+  }
+  return null;
+}
+
+export function checkPassword(password: string): string | null {
+  if (!password) {
+    return 'Password is required';
+  }
+  return null;
+}
