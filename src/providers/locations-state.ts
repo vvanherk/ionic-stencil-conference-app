@@ -1,9 +1,15 @@
+export interface Location {
+  name: string;
+  lat: number;
+  lng: number;
+}
+
 export interface LocationsState {
   mapCenter: {
     lat: number;
     lng: number;
   };
-  items: string[];
+  items: Location[];
 }
 
 export interface LocationsActions {

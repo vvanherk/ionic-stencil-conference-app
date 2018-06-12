@@ -1,5 +1,6 @@
-import { Component, Element } from '@stencil/core';
-import { ConferenceData } from '../../providers/conference-data';
+import { Component, Element, Prop } from '@stencil/core';
+import Tunnel from '../../providers/state-tunnel';
+import { LocationsState } from '../../providers/locations-state';
 
 declare var google: any;
 
@@ -8,33 +9,34 @@ declare var google: any;
   styleUrl: 'page-map.css',
 })
 export class PageMap {
-  private mapData: any;
+  @Prop() locations: LocationsState;
 
   @Element() private el: HTMLElement;
 
   async componentWillLoad() {
     await getGoogleMaps('AIzaSyB8pf6ZdFQj5qw7rc_HSGrhUwQKfIe9ICw');
-    this.mapData = await ConferenceData.getMap();
   }
 
   async componentDidLoad() {
-    const mapData = this.mapData;
     const mapEle = this.el.querySelector('.map-canvas');
 
     const map = new google.maps.Map(mapEle, {
-      center: mapData.find((d: any) => d.center),
+      center: this.locations.mapCenter,
       zoom: 16
     });
 
-    mapData.forEach((markerData: any) => {
+    this.locations.items.forEach((location) => {
       const infoWindow = new google.maps.InfoWindow({
-        content: `<h5>${markerData.name}</h5>`
+        content: `<h5>${location.name}</h5>`
       });
 
       const marker = new google.maps.Marker({
-        position: markerData,
+        position: {
+          lat: location.lat,
+          lng: location.lng
+        },
         map: map,
-        title: markerData.name
+        title: location.name
       });
 
       marker.addListener('click', () => {
@@ -87,3 +89,5 @@ function getGoogleMaps(apiKey: string): Promise<any> {
     };
   });
 }
+
+Tunnel.injectProps(PageMap, 'locations');
