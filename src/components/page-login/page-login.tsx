@@ -97,9 +97,7 @@ export class PageLogin {
             </ion-col>
           </ion-row>
         </form>
-
       </ion-content>
-
     ];
   }
 }

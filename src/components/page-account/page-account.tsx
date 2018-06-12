@@ -1,5 +1,6 @@
-import { Component, Event, EventEmitter, Prop, State } from '@stencil/core';
-import { UserData } from '../../providers/user-data';
+import { Component, Prop } from '@stencil/core';
+import Tunnel from '../../providers/state-tunnel';
+import { UserState } from '../../providers/user-state';
 
 
 @Component({
@@ -7,21 +8,14 @@ import { UserData } from '../../providers/user-data';
 })
 export class PageAccount {
 
-  @State() user;
   @Prop({ connect: 'ion-nav' }) nav: HTMLIonNavElement;
   @Prop({ connect: 'ion-alert-controller' }) alertCtrl: HTMLIonAlertControllerElement;
-  @Event() userDidLogOut: EventEmitter;
-
-  componentDidLoad() {
-    this.getUser();
-  }
+  @Prop() user: UserState;
+  @Prop() logOutUser: () => void;
+  @Prop() setUsername: (username: string) => void;
 
   updatePicture() {
     console.log('Clicked to update picture');
-  }
-
-  async getUser() {
-    this.user = await UserData.getUsername();
   }
 
   changePassword() {
@@ -30,8 +24,7 @@ export class PageAccount {
 
   async logout() {
     const navCtrl: HTMLIonNavElement = await (this.nav as any).componentOnReady();
-    await UserData.logout();
-    this.userDidLogOut.emit({ loginStatus: false });
+    this.logOutUser();
     navCtrl.setRoot('page-tabs', null, { animated: true, direction: 'forward' });
   }
 
@@ -49,17 +42,15 @@ export class PageAccount {
           name: 'username',
           id: 'userName',
           placeholder: 'username',
-          value: this.user
-        },
-
+          value: this.user.userName
+        }
       ],
       buttons: [
         { text: 'Cancel' },
         {
           text: 'Ok',
           handler: (data) => {
-            UserData.setUsername(data.username);
-            this.getUser();
+            this.setUsername(data.username);
           }
         }
       ]
@@ -98,3 +89,5 @@ export class PageAccount {
     ];
   }
 }
+
+Tunnel.injectProps(PageAccount, ['user', 'logOutUser', 'setUsername']);
