@@ -1,8 +1,14 @@
 import '@ionic/core';
 
-import { Component, Element, Listen, Prop, State } from '@stencil/core';
+import { Component, Element, Prop, State } from '@stencil/core';
+import Tunnel, { State as TunnelState } from '../../providers/state-tunnel';
 import { UserData } from '../../providers/user-data';
 import { Plugins } from '@capacitor/core';
+import { bindActions } from '../../providers/util';
+import { UserState, actions as userActions  } from '../../providers/user-state';
+import { LocationsState } from '../../providers/locations-state';
+import { SessionsState, actions as sessionsActions } from '../../providers/sessions-state';
+import { SpeakersState } from '../../providers/speakers-state';
 
 const { SplashScreen } = Plugins;
 
@@ -11,13 +17,14 @@ const { SplashScreen } = Plugins;
   styleUrl: 'app-root.css'
 })
 export class AppRoot {
-  @State() loggedIn = false;
-  hasSeenTutorial = false;
-
   @Element() el: HTMLElement;
 
-  @Prop({context: 'isServer'}) isServer: boolean;
+  @State() user: UserState;
+  @State() locations: LocationsState;
+  @State() sessions: SessionsState;
+  @State() speakers: SpeakersState;
 
+  @Prop({context: 'isServer'}) isServer: boolean;
 
   appPages = [
     {
@@ -40,7 +47,7 @@ export class AppRoot {
   ];
 
   async componentWillLoad() {
-    this.hasSeenTutorial = this.isServer
+    this.user.hasSeenTutorial = this.isServer
       ? true
       : await UserData.checkHasSeenTutorial();
   }
@@ -54,26 +61,10 @@ export class AppRoot {
     }
   }
 
-  async checkLoginStatus() {
-    const loggedIn = this.loggedIn = await UserData.isLoggedIn();
-    return loggedIn;
-  }
-
-  async logout() {
-    await UserData.logout();
-    this.loggedIn = false;
-  }
-
-  @Listen('userDidLogIn')
-  @Listen('userDidLogOut')
-  updateLoggedInStatus(loggedEvent) {
-    this.loggedIn = loggedEvent.detail.loginStatus;
-  }
-
   renderRouter() {
     return (
       <ion-router useHash={false}>
-        <ion-route-redirect from="/" to={this.hasSeenTutorial ? '/schedule' : '/tutorial'} />
+        <ion-route-redirect from="/" to={this.user.hasSeenTutorial ? '/schedule' : '/tutorial'} />
 
         <ion-route component="page-tabs">
           <ion-route url="/schedule" component="tab-schedule">
@@ -103,102 +94,113 @@ export class AppRoot {
 
   // TODO ion-menu should be split out
   render() {
+    const state: TunnelState = {
+      user: this.user,
+      ...bindActions(this, userActions),
+      locations: this.locations,
+      sessions: this.sessions,
+      ...bindActions(this, sessionsActions),
+      speakers: this.speakers
+    };
+
     return (
-      <ion-app>
-        {this.renderRouter()}
-        <ion-split-pane>
-          <ion-menu>
-            <ion-header>
-              <ion-toolbar>
-                <ion-title>Menu</ion-title>
-              </ion-toolbar>
-            </ion-header>
-            <ion-content forceOverscroll={false}>
-              <ion-list>
-                <ion-list-header>
-                  Navigate
-                </ion-list-header>
-
-                {this.appPages.map((p) =>
-                  <ion-menu-toggle autoHide={false}>
-                    <ion-item href={p.url}>
-                      <ion-icon slot="start" name={p.icon}></ion-icon>
-                      <ion-label>
-                        {p.title}
-                      </ion-label>
-                    </ion-item>
-                  </ion-menu-toggle>
-                )}
-              </ion-list>
-
-              <ion-list>
-                <ion-list-header>
-                  Account
+      <Tunnel.Provider state={state}>
+        <ion-app>
+          {this.renderRouter()}
+          <ion-split-pane>
+            <ion-menu>
+              <ion-header>
+                <ion-toolbar>
+                  <ion-title>Menu</ion-title>
+                </ion-toolbar>
+              </ion-header>
+              <ion-content forceOverscroll={false}>
+                <ion-list>
+                  <ion-list-header>
+                    Navigate
                   </ion-list-header>
 
-                <ion-menu-toggle autoHide={false}>
-                  {this.loggedIn
-                    ? <ion-item href="account">
-                      <ion-icon slot="start" name="person"></ion-icon>
+                  {this.appPages.map((p) =>
+                    <ion-menu-toggle autoHide={false}>
+                      <ion-item href={p.url}>
+                        <ion-icon slot="start" name={p.icon}></ion-icon>
+                        <ion-label>
+                          {p.title}
+                        </ion-label>
+                      </ion-item>
+                    </ion-menu-toggle>
+                  )}
+                </ion-list>
+
+                <ion-list>
+                  <ion-list-header>
+                    Account
+                    </ion-list-header>
+
+                  <ion-menu-toggle autoHide={false}>
+                    {this.user.isAuthenticated
+                      ? <ion-item href="account">
+                        <ion-icon slot="start" name="person"></ion-icon>
+                        <ion-label>
+                          Account
+                            </ion-label>
+                      </ion-item>
+
+                      : <ion-item href="login">
+                        <ion-icon slot="start" name="log-in"></ion-icon>
+                        <ion-label>
+                          Login
+                            </ion-label>
+                      </ion-item>
+                    }
+                  </ion-menu-toggle>
+
+                  <ion-menu-toggle autoHide={false}>
+                    <ion-item href="support" button>
+                      <ion-icon slot="start" name="help"></ion-icon>
                       <ion-label>
-                        Account
-                          </ion-label>
+                        Support
+                        </ion-label>
                     </ion-item>
+                  </ion-menu-toggle>
 
-                    : <ion-item href="login">
-                      <ion-icon slot="start" name="log-in"></ion-icon>
-                      <ion-label>
-                        Login
-                          </ion-label>
+                  <ion-menu-toggle autoHide={false}>
+                    {this.user.isAuthenticated
+                      ? <ion-item onClick={() => state.logOutUser()} button>
+                        <ion-icon slot="start" name="log-out"></ion-icon>
+                        <ion-label>
+                          Logout
+                            </ion-label>
+                      </ion-item>
+
+                      : <ion-item href="signup" button>
+                        <ion-icon slot="start" name="person-add"></ion-icon>
+                        <ion-label>
+                          Signup
+                            </ion-label>
+                      </ion-item>
+                    }
+                  </ion-menu-toggle>
+                </ion-list>
+
+                <ion-list>
+                  <ion-list-header>
+                    Tutorial
+                  </ion-list-header>
+                  <ion-menu-toggle autoHide={false}>
+                    <ion-item href="tutorial">
+                      <ion-icon slot="start" name="hammer"></ion-icon>
+                      <ion-label>Show Tutorial</ion-label>
                     </ion-item>
-                  }
-                </ion-menu-toggle>
+                  </ion-menu-toggle>
+                </ion-list>
+              </ion-content>
+            </ion-menu>
 
-                <ion-menu-toggle autoHide={false}>
-                  <ion-item href="support" button>
-                    <ion-icon slot="start" name="help"></ion-icon>
-                    <ion-label>
-                      Support
-                      </ion-label>
-                  </ion-item>
-                </ion-menu-toggle>
-
-                <ion-menu-toggle autoHide={false}>
-                  {this.loggedIn
-                    ? <ion-item onClick={() => this.logout()} button>
-                      <ion-icon slot="start" name="log-out"></ion-icon>
-                      <ion-label>
-                        Logout
-                          </ion-label>
-                    </ion-item>
-
-                    : <ion-item href="signup" button>
-                      <ion-icon slot="start" name="person-add"></ion-icon>
-                      <ion-label>
-                        Signup
-                          </ion-label>
-                    </ion-item>
-                  }
-                </ion-menu-toggle>
-              </ion-list>
-
-              <ion-list>
-                <ion-list-header>
-                  Tutorial
-                </ion-list-header>
-                <ion-menu-toggle autoHide={false}>
-                  <ion-item href="tutorial">
-                    <ion-icon slot="start" name="hammer"></ion-icon>
-                    <ion-label>Show Tutorial</ion-label>
-                  </ion-item>
-                </ion-menu-toggle>
-              </ion-list>
-            </ion-content>
-          </ion-menu>
-
-          <ion-router-outlet animated={false} main></ion-router-outlet>
-        </ion-split-pane>
-      </ion-app>
+            <ion-router-outlet animated={false} main></ion-router-outlet>
+          </ion-split-pane>
+        </ion-app>
+      </Tunnel.Provider>
     );
   }
 }
