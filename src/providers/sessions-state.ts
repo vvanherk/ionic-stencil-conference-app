@@ -12,12 +12,13 @@ export interface Session {
 export interface SessionsState {
   searchText: string;
   trackFilters: string[];
-  sessions: Session[];
-  favoriteSessions: Session[];
+  items: Session[];
+  favoriteSessions: number[];
   filterFavorites: boolean;
 }
 
 export interface SessionsActions {
+  fetchSessions: () => Promise<void>;
   searchSessions: (searchText: string) => void;
   addSessionTrackFilter: (trackName: string) => void;
   removeSessionsTrackFilter: (trackName: string) => void;
@@ -30,12 +31,23 @@ export interface SessionsActions {
 export const defaultState: SessionsState = {
   searchText: '',
   trackFilters: [],
-  sessions: [],
+  items: [],
   favoriteSessions: [],
   filterFavorites: false
 };
 
 export const actions: SessionsActions = {
+  async fetchSessions() {
+    if (this.sessions.items.length > 0) {
+      return Promise.resolve();
+    }
+    const sessionItems = await fetch('/assets/data/sessions.json');
+    this.sessions = {
+      ...this.sessions,
+      items: sessionItems
+    };
+  },
+
   searchSessions(searchText: string) {
     this.sessions = {
       ...this.sessions,
@@ -102,3 +114,64 @@ export const actions: SessionsActions = {
   }
 };
 
+
+export function getVisibleSessions(sessionState: SessionsState) {
+  let filteredSessions = sessionState.items;
+
+  if (sessionState.searchText) {
+    const lowerSearchText = sessionState.searchText.toLowerCase();
+    filteredSessions = filteredSessions.filter(session => (
+      session.name.toLowerCase().indexOf(lowerSearchText) !== -1)
+    );
+  }
+
+  if (sessionState.trackFilters.length > 0) {
+    filteredSessions = filteredSessions.filter(session => (
+      session.tracks.some(sessionTrackName => (
+        sessionState.trackFilters.some(trackName => trackName === sessionTrackName)
+      ))
+    ));
+  }
+
+  return filteredSessions;
+}
+
+export interface Group {
+  startTime: string;
+  sessions: Session[];
+}
+
+export function groupByStartTime(sessions: Session[]) {
+  return sessions
+    .sort((a, b) => (
+      (new Date(b.dateTimeStart)).getTime() - (new Date(a.dateTimeStart)).getTime()
+    ))
+    .reduce((groups, session) => {
+      const starterHour = new Date(session.dateTimeStart);
+      starterHour.setMinutes(0);
+      starterHour.setSeconds(0);
+
+      const starterHourStr = starterHour.toJSON();
+
+      const foundGroup = groups.find(group => group.startTime === starterHourStr);
+      if (foundGroup) {
+        foundGroup.sessions.push(session);
+      } else {
+        groups.push({
+          startTime: starterHourStr,
+          sessions: [session]
+        });
+      }
+      return groups;
+  }, <Group[]>[]);
+}
+
+export function getTracks(sessionState: SessionsState) {
+  return sessionState.items.reduce((tracks, item) => (
+    item.tracks.reduce((trackList, track) => (
+      (trackList.indexOf(track) === -1) ?
+        trackList.concat(track) :
+        trackList
+    ), tracks)
+  ), <string[]>[]);
+}

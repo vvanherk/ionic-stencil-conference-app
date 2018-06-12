@@ -1,9 +1,13 @@
 import { Config } from '@ionic/core';
-import { Component, Element, Listen, Prop, State } from '@stencil/core';
+import { Component, Element, Listen, Prop, State, Watch } from '@stencil/core';
+import Tunnel from '../../providers/state-tunnel';
+import dateFormat from '../../providers/dateformat';
 
-import { ConferenceData } from '../../providers/conference-data';
+import { Session, SessionsState, getVisibleSessions, groupByStartTime } from '../../providers/sessions-state';
 
-import { UserData } from '../../providers/user-data';
+function formatTime(dateString, formatString) {
+  return dateFormat(new Date(dateString), formatString);
+}
 
 
 @Component({
@@ -11,32 +15,31 @@ import { UserData } from '../../providers/user-data';
   styleUrl: 'page-schedule.css',
 })
 export class PageSchedule {
-  excludeTracks: any = [];
-  dayIndex = 0;
   scheduleList: HTMLIonListElement;
   fab: HTMLIonFabElement;
 
   @Element() el: any;
 
-  @State() groups: any = [];
-
-  @State() shownSessions: any = [];
-
-  @State() segment = 'all';
-
-  @State() queryText = '';
+  @Prop() sessions: SessionsState;
+  @Prop() searchSessions: (searchText: string) => void;
+  @Prop() addFavoriteSession: (sessionId: number) => void;
+  @Prop() removeFavoriteSession: (sessionId: number) => void;
 
   @Prop({ context: 'config' }) config: Config;
-
   @Prop({ connect: 'ion-alert-controller' }) alertCtrl: HTMLIonAlertControllerElement;
-
   @Prop({ connect: 'ion-loading-controller' }) loadingCtrl: HTMLIonLoadingControllerElement;
-
   @Prop({ connect: 'ion-modal-controller' }) modalCtrl: HTMLIonModalControllerElement;
 
+  @State() visibleSessions: Session[];
+  @State() segment = 'all';
+
+  @Watch('sessions')
+  setVisibleSessions() {
+    this.visibleSessions = getVisibleSessions(this.sessions);
+  }
 
   componentWillLoad() {
-    this.updateSchedule();
+    this.setVisibleSessions();
   }
 
   componentDidLoad() {
@@ -52,16 +55,7 @@ export class PageSchedule {
 
   @Listen('ionInput')
   searchbarChanged(event: any) {
-    this.queryText = event.target.value;
-    this.updateSchedule();
-  }
-
-  @Listen('body:ionModalDidDismiss')
-  modalDidDismiss(event: CustomEvent) {
-    if (event) {
-      this.excludeTracks = event.detail.data;
-      this.updateSchedule();
-    }
+    this.searchSessions(event.target.value);
   }
 
   @Listen('body:ionLoadingWillDismiss')
@@ -69,35 +63,25 @@ export class PageSchedule {
     this.fab.close();
   }
 
-  async updateSchedule() {
+  updateSchedule() {
     // Close any open sliding items when the schedule updates
     if (this.scheduleList) {
       this.scheduleList.closeSlidingItems();
     }
-
-    const data = await ConferenceData.getTimeline(this.dayIndex, this.queryText, this.excludeTracks, this.segment);
-    this.shownSessions = data.shownSessions;
-    this.groups = data.groups;
-
-    this.el.forceUpdate();
   }
 
   async presentFilter() {
     const modal = await this.modalCtrl.create({
       component: 'page-schedule-filter',
-      componentProps: { excludedTracks: this.excludeTracks }
     });
     await modal.present();
   }
 
-  async addFavorite(session: any) {
-    if (UserData.hasFavorite(session.name)) {
+  async addFavorite(session: Session) {
+    if (this.sessions.favoriteSessions.find(sid => sid === session.id) ) {
       // oops, this session has already been favorited, prompt to remove it
       this.removeFavorite(session, 'Favorite already added');
     } else {
-      // remember this session as a user favorite
-      UserData.addFavorite(session.name);
-
       // create an alert instance
       const alert = await this.alertCtrl.create({
         header: 'Favorite Added',
@@ -106,7 +90,7 @@ export class PageSchedule {
           handler: () => {
             // close the sliding item
             this.scheduleList.closeSlidingItems();
-            this.updateSchedule();
+            this.addFavoriteSession(session.id);
           }
         }]
       });
@@ -116,7 +100,7 @@ export class PageSchedule {
     }
   }
 
-  async removeFavorite(session: any, title: string) {
+  async removeFavorite(session: Session, title: string) {
     const alert = await this.alertCtrl.create({
       header: title,
       message: 'Would you like to remove this session from your favorites?',
@@ -133,8 +117,7 @@ export class PageSchedule {
           text: 'Remove',
           handler: () => {
             // they want to remove this session from their favorites
-            UserData.removeFavorite(session.name);
-            this.updateSchedule();
+            this.removeFavoriteSession(session.id);
           }
         }
       ]
@@ -163,6 +146,7 @@ export class PageSchedule {
 
   render() {
     const mode = this.config.get('mode');
+    const groups = groupByStartTime(this.visibleSessions);
 
     return [
       <ion-header>
@@ -188,33 +172,35 @@ export class PageSchedule {
         </ion-toolbar>
 
         <ion-toolbar>
-          <ion-searchbar value={this.queryText} placeholder="Search">
+          <ion-searchbar value={this.sessions.searchText} placeholder="Search">
           </ion-searchbar>
         </ion-toolbar>
       </ion-header>,
 
       <ion-content>
-        <ion-list id="scheduleList" hidden={this.shownSessions === 0}>
-          {this.groups.map(group =>
-            <ion-item-group hidden={group.hide}>
+        <ion-list id="scheduleList" hidden={this.visibleSessions.length === 0}>
+          {groups.map(group =>
+            <ion-item-group>
               <ion-item-divider class="sticky">
                 <ion-label>
-                  {group.time}
+                  {formatTime(group.startTime, 'h:MM tt')}
                 </ion-label>
               </ion-item-divider>
 
               {group.sessions.map(session =>
-              <ion-item-sliding class={{[`item-sliding-track-${session.tracks[0].toLowerCase()}`]: true, 'item-sliding-track': true}} hidden={session.hide}>
+              <ion-item-sliding class={{[`item-sliding-track-${session.tracks[0].toLowerCase()}`]: true, 'item-sliding-track': true}}>
               <ion-item href={`/schedule/session/${session.id}`}>
                   <ion-label>
                     <h3>{session.name}</h3>
                     <p>
-                      {session.timeStart} &ndash; {session.timeEnd} &mdash; {session.location}
+                      {formatTime(session.dateTimeStart, 'h:MM tt')} &ndash;
+                      {formatTime(session.dateTimeEnd, 'h:MM tt')} &mdash;
+                      {session.location}
                     </p>
                   </ion-label>
                 </ion-item>
                 <ion-item-options>
-                  {session.isFavorite === false
+                  {this.sessions.favoriteSessions.indexOf(session.id) === -1
                     ? <ion-item-option color="favorite" onClick={() => this.addFavorite(session)}>
                         Favorite
                       </ion-item-option>
@@ -231,7 +217,7 @@ export class PageSchedule {
           )}
         </ion-list>
 
-        <ion-list-header hidden={this.shownSessions > 0}>
+        <ion-list-header hidden={this.visibleSessions.length > 0}>
           No Sessions Found
         </ion-list-header>
 
@@ -259,3 +245,5 @@ export class PageSchedule {
     ];
   }
 }
+
+Tunnel.injectProps(PageSchedule, ['sessions', 'addFavoriteSession', 'removeFavoriteSession', 'searchSessions']);

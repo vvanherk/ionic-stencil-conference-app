@@ -45,8 +45,18 @@ export class AppRoot {
       icon: 'information-circle'
     }
   ];
+  appState: TunnelState;
 
   async componentWillLoad() {
+    this.appState = {
+      user: this.user,
+      locations: this.locations,
+      sessions: this.sessions,
+      speakers: this.speakers,
+      ...bindActions(this, userActions),
+      ...bindActions(this, sessionsActions),
+    };
+
     this.user.hasSeenTutorial = this.isServer
       ? true
       : await UserData.checkHasSeenTutorial();
@@ -94,17 +104,16 @@ export class AppRoot {
 
   // TODO ion-menu should be split out
   render() {
-    const state: TunnelState = {
+    this.appState = {
+      ...this.appState,
       user: this.user,
-      ...bindActions(this, userActions),
       locations: this.locations,
       sessions: this.sessions,
-      ...bindActions(this, sessionsActions),
       speakers: this.speakers
     };
 
     return (
-      <Tunnel.Provider state={state}>
+      <Tunnel.Provider state={this.appState}>
         <ion-app>
           {this.renderRouter()}
           <ion-split-pane>
@@ -166,7 +175,7 @@ export class AppRoot {
 
                   <ion-menu-toggle autoHide={false}>
                     {this.user.isAuthenticated
-                      ? <ion-item onClick={() => state.logOutUser()} button>
+                      ? <ion-item onClick={() => this.appState.logOutUser()} button>
                         <ion-icon slot="start" name="log-out"></ion-icon>
                         <ion-label>
                           Logout

@@ -3,7 +3,11 @@ export interface LocationsState {
     lat: number;
     lng: number;
   };
-  locations: string[];
+  items: string[];
+}
+
+export interface LocationsActions {
+  fetchLocations(): Promise<void>;
 }
 
 export const defaultState: LocationsState = {
@@ -11,5 +15,14 @@ export const defaultState: LocationsState = {
     lat: 43.071584,
     lng: -89.380120,
   },
-  locations: []
+  items: []
+};
+
+export const actions: LocationsActions = {
+  async fetchLocations() {
+    this.locations = {
+      ...this.locations,
+      items: await fetch('/assets/data/locations.json')
+    };
+  }
 };

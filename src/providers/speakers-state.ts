@@ -10,9 +10,22 @@ export interface Speaker {
 }
 
 export interface SpeakersState {
-  speakers: Speaker[];
+  items: Speaker[];
+}
+
+export interface SpeakersActions {
+  fetchSpeakers: () => Promise<void>;
 }
 
 export const defaultState: SpeakersState = {
-  speakers: []
+  items: []
+};
+
+export const actions: SpeakersActions = {
+  async fetchSpeakers() {
+    this.speakers = {
+      ...this.speakers,
+      items: await fetch('/assets/data/speakers.json')
+    };
+  }
 };
