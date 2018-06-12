@@ -2,30 +2,36 @@ import { Config } from '@ionic/core';
 import { Component, Prop } from '@stencil/core';
 import { InAppBrowser } from '@ionic-native/in-app-browser';
 
-import { ConferenceData } from '../../providers/conference-data';
+import Tunnel from '../../providers/state-tunnel';
+import { Speaker, SpeakersState } from '../../providers/speakers-state';
+import { SessionsState } from '../../providers/sessions-state';
 
 @Component({
   tag: 'page-speaker-list',
   styleUrl: 'page-speaker-list.css'
 })
 export class PageSpeakerList {
-  speakers: any[] = [];
-
   @Prop({ connect: 'ion-action-sheet-controller' }) actionSheetCtrl: HTMLIonActionSheetControllerElement;
-
   @Prop({ context: 'config' }) config: Config;
+  @Prop() speakers: SpeakersState;
+  @Prop() sessions: SessionsState;
+  @Prop() fetchSpeakers: () => Promise<void>;
+  @Prop() fetchSessions: () => Promise<void>;
 
   async componentWillLoad() {
-    this.speakers = await ConferenceData.getSpeakers();
+    await Promise.all([
+      this.fetchSpeakers(),
+      this.fetchSessions()
+    ]);
   }
 
-  goToSpeakerTwitter(speaker: any) {
+  goToSpeakerTwitter(speaker: Speaker) {
     console.log('goToSpeakerTwitter', speaker);
 
     InAppBrowser.create(`https://twitter.com/${speaker.twitter}`, '_blank');
   }
 
-  async openSpeakerShare(speaker: any) {
+  async openSpeakerShare(speaker: Speaker) {
     const actionSheet = await this.actionSheetCtrl.create({
       header: 'Share ' + speaker.name,
       buttons: [
@@ -58,7 +64,7 @@ export class PageSpeakerList {
     actionSheet.present();
   }
 
-  async openContact(speaker: any) {
+  async openContact(speaker: Speaker) {
     const mode = this.config.get('mode');
 
     const actionSheet = await this.actionSheetCtrl.create({
@@ -99,7 +105,7 @@ export class PageSpeakerList {
         <ion-list>
           <ion-grid>
             <ion-row align-items-stretch>
-              {this.speakers.map(speaker => (
+              {this.speakers.items.map((speaker: Speaker) => (
                 <ion-col col-12 col-md-6 align-self-stretch>
                   <ion-card class="speaker-card">
                     <ion-card-header>
@@ -113,12 +119,14 @@ export class PageSpeakerList {
 
                     <ion-card-content>
                       <ion-list>
-                        {speaker.sessions.map(session => (
-                          <ion-item href={`/speakers/session/${session.id}`}>
-                            <h3>{session.name}</h3>
-                          </ion-item>
-                        ))}
-
+                        {this.sessions.items
+                          .filter(s => s.speakerIds.indexOf(speaker.id) !== -1)
+                          .map(session => (
+                            <ion-item href={`/speakers/session/${session.id}`}>
+                              <h3>{session.name}</h3>
+                            </ion-item>
+                          ))
+                        }
                         <ion-item href={`/speakers/${speaker.id}`}>
                           <h3>About {speaker.name}</h3>
                         </ion-item>
@@ -167,3 +175,5 @@ export class PageSpeakerList {
     ];
   }
 }
+
+Tunnel.injectProps(PageSpeakerList, ['speakers', 'sessions', 'fetchSpeakers', 'fetchSessions']);

@@ -24,7 +24,6 @@ export const defaultState: SpeakersState = {
 export const actions: SpeakersActions = {
   async fetchSpeakers() {
     this.speakers = {
-      ...this.speakers,
       items: await fetch('/assets/data/speakers.json')
     };
   }

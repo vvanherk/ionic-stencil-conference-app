@@ -1,27 +1,29 @@
 import { Component, Prop } from '@stencil/core';
-import { ConferenceData } from '../../providers/conference-data';
+import Tunnel from '../../providers/state-tunnel';
+import { SpeakersState } from '../../providers/speakers-state';
 
 @Component({
   tag: 'page-speaker-detail',
   styleUrl: 'page-speaker-detail.css'
 })
 export class PageSpeakerDetail {
-  private speaker: any;
-
-  @Prop() speakerId: string;
+  @Prop() speakerId: number;
+  @Prop() speakers: SpeakersState;
+  @Prop() fetchSpeakers: () => Promise<void>;
 
   async componentWillLoad() {
-    this.speaker = await ConferenceData.getSpeaker(this.speakerId);
+    await this.fetchSpeakers();
   }
 
   render() {
+    const speaker = this.speakers.items.find(s => s.id === this.speakerId);
     return [
       <ion-header>
         <ion-toolbar>
           <ion-buttons slot="start">
             <ion-back-button defaultHref="/speakers"></ion-back-button>
           </ion-buttons>
-          <ion-title>{this.speaker.name}</ion-title>
+          <ion-title>{speaker.name}</ion-title>
         </ion-toolbar>
       </ion-header>,
       <ion-content class="outer-content">
@@ -30,7 +32,7 @@ export class PageSpeakerDetail {
             <ion-col col-10 push-1 col-sm-6 push-sm-3>
               <ion-card>
                 <ion-card-content>
-                  <img src={this.speaker.profilePic} alt={this.speaker.name}/>
+                  <img src={speaker.profilePic} alt={speaker.name}/>
 
                   <ion-button fill="clear" size="small" color="twitter">
                     <ion-icon slot="icon-only" name="logo-twitter"></ion-icon>
@@ -42,7 +44,7 @@ export class PageSpeakerDetail {
                     <ion-icon slot="icon-only" name="logo-instagram"></ion-icon>
                   </ion-button>
 
-                  <p>{this.speaker.about}</p>
+                  <p>{speaker.about}</p>
                 </ion-card-content>
               </ion-card>
             </ion-col>
@@ -52,3 +54,5 @@ export class PageSpeakerDetail {
     ];
   }
 }
+
+Tunnel.injectProps(PageSpeakerDetail, ['speakers', 'fetchSpeakers']);

@@ -5,7 +5,7 @@ export interface Session {
   name: string;
   location: string;
   description: string;
-  speakerIds: string[];
+  speakerIds: number[];
   tracks: string[];
 }
 
