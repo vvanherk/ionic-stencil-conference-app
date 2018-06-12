@@ -2,13 +2,12 @@ import '@ionic/core';
 
 import { Component, Element, Prop, State } from '@stencil/core';
 import Tunnel, { State as TunnelState } from '../../providers/state-tunnel';
-import { UserData } from '../../providers/user-data';
 import { Plugins } from '@capacitor/core';
 import { bindActions } from '../../providers/util';
-import { UserState, actions as userActions  } from '../../providers/user-state';
-import { LocationsState } from '../../providers/locations-state';
+import { UserState, actions as userActions } from '../../providers/user-state';
+import { LocationsState, actions as locationsActions } from '../../providers/locations-state';
 import { SessionsState, actions as sessionsActions } from '../../providers/sessions-state';
-import { SpeakersState } from '../../providers/speakers-state';
+import { SpeakersState, actions as speakersActions } from '../../providers/speakers-state';
 
 const { SplashScreen } = Plugins;
 
@@ -54,12 +53,12 @@ export class AppRoot {
       sessions: this.sessions,
       speakers: this.speakers,
       ...bindActions(this, userActions),
+      ...bindActions(this, locationsActions),
       ...bindActions(this, sessionsActions),
+      ...bindActions(this, speakersActions),
     };
 
-    this.user.hasSeenTutorial = this.isServer
-      ? true
-      : await UserData.checkHasSeenTutorial();
+    this.user.hasSeenTutorial = this.isServer;
   }
 
   async componentDidLoad() {

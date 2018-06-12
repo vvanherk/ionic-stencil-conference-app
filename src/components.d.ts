@@ -13,9 +13,12 @@ declare global {
   }
   namespace JSXElements {}
 
+  interface HTMLElement {
+    componentOnReady?: () => Promise<this | null>;
+  }
+
   interface HTMLStencilElement extends HTMLElement {
     componentOnReady(): Promise<this>;
-    componentOnReady(done: (ele?: this) => void): void;
 
     forceUpdate(): void;
   }
@@ -23,9 +26,22 @@ declare global {
   interface HTMLAttributes {}
 }
 
-import 'ionicons';
+import '@stencil/state-tunnel';
 import '@ionic/core';
+import 'ionicons';
 
+import {
+  UserState,
+} from './providers/user-state';
+import {
+  LocationsState,
+} from './providers/locations-state';
+import {
+  SessionsState,
+} from './providers/sessions-state';
+import {
+  SpeakersState,
+} from './providers/speakers-state';
 
 declare global {
 
@@ -130,7 +146,9 @@ declare global {
 
   namespace StencilComponents {
     interface PageAccount {
-
+      'logOutUser': () => void;
+      'setUsername': (username: string) => void;
+      'user': UserState;
     }
   }
 
@@ -153,7 +171,9 @@ declare global {
   }
   namespace JSXElements {
     export interface PageAccountAttributes extends HTMLAttributes {
-      'onUserDidLogOut'?: (event: CustomEvent) => void;
+      'logOutUser'?: () => void;
+      'setUsername'?: (username: string) => void;
+      'user'?: UserState;
     }
   }
 }
@@ -163,7 +183,7 @@ declare global {
 
   namespace StencilComponents {
     interface PageLogin {
-
+      'logInUser': (username: string) => void;
     }
   }
 
@@ -186,7 +206,7 @@ declare global {
   }
   namespace JSXElements {
     export interface PageLoginAttributes extends HTMLAttributes {
-      'onUserDidLogIn'?: (event: CustomEvent) => void;
+      'logInUser'?: (username: string) => void;
     }
   }
 }
@@ -196,7 +216,7 @@ declare global {
 
   namespace StencilComponents {
     interface PageMap {
-
+      'locations': LocationsState;
     }
   }
 
@@ -219,7 +239,7 @@ declare global {
   }
   namespace JSXElements {
     export interface PageMapAttributes extends HTMLAttributes {
-
+      'locations'?: LocationsState;
     }
   }
 }
@@ -229,7 +249,8 @@ declare global {
 
   namespace StencilComponents {
     interface PageScheduleFilter {
-
+      'refreshSessionsTrackFilters': (trackNames: string[]) => void;
+      'sessions': SessionsState;
     }
   }
 
@@ -252,7 +273,8 @@ declare global {
   }
   namespace JSXElements {
     export interface PageScheduleFilterAttributes extends HTMLAttributes {
-
+      'refreshSessionsTrackFilters'?: (trackNames: string[]) => void;
+      'sessions'?: SessionsState;
     }
   }
 }
@@ -262,7 +284,10 @@ declare global {
 
   namespace StencilComponents {
     interface PageSchedule {
-
+      'addFavoriteSession': (sessionId: number) => void;
+      'removeFavoriteSession': (sessionId: number) => void;
+      'searchSessions': (searchText: string) => void;
+      'sessions': SessionsState;
     }
   }
 
@@ -285,7 +310,10 @@ declare global {
   }
   namespace JSXElements {
     export interface PageScheduleAttributes extends HTMLAttributes {
-
+      'addFavoriteSession'?: (sessionId: number) => void;
+      'removeFavoriteSession'?: (sessionId: number) => void;
+      'searchSessions'?: (searchText: string) => void;
+      'sessions'?: SessionsState;
     }
   }
 }
@@ -295,8 +323,11 @@ declare global {
 
   namespace StencilComponents {
     interface PageSession {
+      'addFavoriteSession': (sessionId: number) => void;
       'goback': string;
-      'sessionId': string;
+      'removeFavoriteSession': (sessionId: number) => void;
+      'sessionId': number;
+      'sessions': SessionsState;
     }
   }
 
@@ -319,8 +350,11 @@ declare global {
   }
   namespace JSXElements {
     export interface PageSessionAttributes extends HTMLAttributes {
+      'addFavoriteSession'?: (sessionId: number) => void;
       'goback'?: string;
-      'sessionId'?: string;
+      'removeFavoriteSession'?: (sessionId: number) => void;
+      'sessionId'?: number;
+      'sessions'?: SessionsState;
     }
   }
 }
@@ -330,7 +364,7 @@ declare global {
 
   namespace StencilComponents {
     interface PageSignup {
-
+      'signUpUser': (userName: string) => void;
     }
   }
 
@@ -353,7 +387,7 @@ declare global {
   }
   namespace JSXElements {
     export interface PageSignupAttributes extends HTMLAttributes {
-
+      'signUpUser'?: (userName: string) => void;
     }
   }
 }
@@ -363,7 +397,9 @@ declare global {
 
   namespace StencilComponents {
     interface PageSpeakerDetail {
-      'speakerId': string;
+      'fetchSpeakers': () => Promise<void>;
+      'speakerId': number;
+      'speakers': SpeakersState;
     }
   }
 
@@ -386,7 +422,9 @@ declare global {
   }
   namespace JSXElements {
     export interface PageSpeakerDetailAttributes extends HTMLAttributes {
-      'speakerId'?: string;
+      'fetchSpeakers'?: () => Promise<void>;
+      'speakerId'?: number;
+      'speakers'?: SpeakersState;
     }
   }
 }
@@ -396,7 +434,10 @@ declare global {
 
   namespace StencilComponents {
     interface PageSpeakerList {
-
+      'fetchSessions': () => Promise<void>;
+      'fetchSpeakers': () => Promise<void>;
+      'sessions': SessionsState;
+      'speakers': SpeakersState;
     }
   }
 
@@ -419,7 +460,10 @@ declare global {
   }
   namespace JSXElements {
     export interface PageSpeakerListAttributes extends HTMLAttributes {
-
+      'fetchSessions'?: () => Promise<void>;
+      'fetchSpeakers'?: () => Promise<void>;
+      'sessions'?: SessionsState;
+      'speakers'?: SpeakersState;
     }
   }
 }
@@ -495,7 +539,7 @@ declare global {
 
   namespace StencilComponents {
     interface PageTutorial {
-
+      'showedTutorial': () => void;
     }
   }
 
@@ -518,7 +562,7 @@ declare global {
   }
   namespace JSXElements {
     export interface PageTutorialAttributes extends HTMLAttributes {
-
+      'showedTutorial'?: () => void;
     }
   }
 }
