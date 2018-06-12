@@ -4,10 +4,10 @@ import { Component, Element, Prop, State } from '@stencil/core';
 import Tunnel, { State as TunnelState } from '../../providers/state-tunnel';
 import { Plugins } from '@capacitor/core';
 import { bindActions } from '../../providers/util';
-import { UserState, actions as userActions } from '../../providers/user-state';
-import { LocationsState, actions as locationsActions } from '../../providers/locations-state';
-import { SessionsState, actions as sessionsActions } from '../../providers/sessions-state';
-import { SpeakersState, actions as speakersActions } from '../../providers/speakers-state';
+import { UserState, actions as userActions, defaultState as userDefaultState } from '../../providers/user-state';
+import { LocationsState, actions as locationsActions, defaultState as locationsDefaultState } from '../../providers/locations-state';
+import { SessionsState, actions as sessionsActions, defaultState as sessionsDefaultState } from '../../providers/sessions-state';
+import { SpeakersState, actions as speakersActions, defaultState as speakersDefaultState } from '../../providers/speakers-state';
 
 const { SplashScreen } = Plugins;
 
@@ -18,10 +18,10 @@ const { SplashScreen } = Plugins;
 export class AppRoot {
   @Element() el: HTMLElement;
 
-  @State() user: UserState;
-  @State() locations: LocationsState;
-  @State() sessions: SessionsState;
-  @State() speakers: SpeakersState;
+  @State() user: UserState = userDefaultState;
+  @State() locations: LocationsState = locationsDefaultState;
+  @State() sessions: SessionsState = sessionsDefaultState;
+  @State() speakers: SpeakersState = speakersDefaultState;
 
   @Prop({context: 'isServer'}) isServer: boolean;
 
@@ -58,7 +58,9 @@ export class AppRoot {
       ...bindActions(this, speakersActions),
     };
 
-    this.user.hasSeenTutorial = this.isServer;
+    if (this.isServer) {
+      this.appState.showedTutorial();
+    }
   }
 
   async componentDidLoad() {
@@ -72,7 +74,7 @@ export class AppRoot {
   renderRouter() {
     return (
       <ion-router useHash={false}>
-        <ion-route-redirect from="/" to={this.user.hasSeenTutorial ? '/schedule' : '/tutorial'} />
+        <ion-route-redirect from="/" to={this.appState.user.hasSeenTutorial ? '/schedule' : '/tutorial'} />
 
         <ion-route component="page-tabs">
           <ion-route url="/schedule" component="tab-schedule">

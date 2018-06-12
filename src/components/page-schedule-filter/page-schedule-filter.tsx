@@ -10,7 +10,7 @@ import { SessionsState, getTracks} from '../../providers/sessions-state';
   styleUrl: 'page-schedule-filter.css',
 })
 export class PageScheduleFilter {
-  @Element() el: any;
+  @Element() el: HTMLStencilElement;
 
   @State() filteredTracks: string[];
 

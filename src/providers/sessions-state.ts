@@ -41,7 +41,8 @@ export const actions: SessionsActions = {
     if (this.sessions.items.length > 0) {
       return Promise.resolve();
     }
-    const sessionItems = await fetch('/assets/data/sessions.json');
+    const response = await fetch('/assets/data/sessions.json');
+    const sessionItems = await response.json();
     this.sessions = {
       ...this.sessions,
       items: sessionItems

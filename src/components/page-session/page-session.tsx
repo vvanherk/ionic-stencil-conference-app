@@ -1,4 +1,4 @@
-import { Component, Prop } from '@stencil/core';
+import { Component, Element, Prop } from '@stencil/core';
 import Tunnel from '../../providers/state-tunnel';
 import { SessionsState } from '../../providers/sessions-state';
 import dateFormat from '../../providers/dateformat';
@@ -12,7 +12,7 @@ function formatTime(dateString, formatString) {
   styleUrl: 'page-session.css',
 })
 export class PageSession {
-
+  @Element() el: HTMLStencilElement;
   @Prop() sessionId: number;
   @Prop() sessions: SessionsState;
   @Prop() addFavoriteSession: (sessionId: number) => void;

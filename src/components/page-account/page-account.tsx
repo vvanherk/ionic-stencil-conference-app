@@ -1,4 +1,4 @@
-import { Component, Prop } from '@stencil/core';
+import { Component, Element, Prop } from '@stencil/core';
 import Tunnel from '../../providers/state-tunnel';
 import { UserState } from '../../providers/user-state';
 
@@ -7,7 +7,7 @@ import { UserState } from '../../providers/user-state';
   tag: 'page-account',
 })
 export class PageAccount {
-
+  @Element() el: HTMLStencilElement;
   @Prop({ connect: 'ion-nav' }) nav: HTMLIonNavElement;
   @Prop({ connect: 'ion-alert-controller' }) alertCtrl: HTMLIonAlertControllerElement;
   @Prop() user: UserState;

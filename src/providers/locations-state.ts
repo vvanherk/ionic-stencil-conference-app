@@ -26,9 +26,11 @@ export const defaultState: LocationsState = {
 
 export const actions: LocationsActions = {
   async fetchLocations() {
+    const response = await fetch('/assets/data/locations.json');
+    const items = await response.json();
     this.locations = {
       ...this.locations,
-      items: await fetch('/assets/data/locations.json')
+      items
     };
   }
 };

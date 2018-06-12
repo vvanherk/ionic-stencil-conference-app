@@ -23,8 +23,10 @@ export const defaultState: SpeakersState = {
 
 export const actions: SpeakersActions = {
   async fetchSpeakers() {
+    const response = await fetch('/assets/data/speakers.json');
+    const items = await response.json();
     this.speakers = {
-      items: await fetch('/assets/data/speakers.json')
+      items
     };
   }
 };

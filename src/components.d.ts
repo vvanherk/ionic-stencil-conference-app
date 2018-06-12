@@ -285,6 +285,7 @@ declare global {
   namespace StencilComponents {
     interface PageSchedule {
       'addFavoriteSession': (sessionId: number) => void;
+      'fetchSessions': () => Promise<void>;
       'removeFavoriteSession': (sessionId: number) => void;
       'searchSessions': (searchText: string) => void;
       'sessions': SessionsState;
@@ -311,6 +312,7 @@ declare global {
   namespace JSXElements {
     export interface PageScheduleAttributes extends HTMLAttributes {
       'addFavoriteSession'?: (sessionId: number) => void;
+      'fetchSessions'?: () => Promise<void>;
       'removeFavoriteSession'?: (sessionId: number) => void;
       'searchSessions'?: (searchText: string) => void;
       'sessions'?: SessionsState;

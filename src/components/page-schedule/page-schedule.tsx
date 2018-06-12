@@ -18,19 +18,20 @@ export class PageSchedule {
   scheduleList: HTMLIonListElement;
   fab: HTMLIonFabElement;
 
-  @Element() el: any;
+  @Element() el: HTMLStencilElement;
 
   @Prop() sessions: SessionsState;
   @Prop() searchSessions: (searchText: string) => void;
   @Prop() addFavoriteSession: (sessionId: number) => void;
   @Prop() removeFavoriteSession: (sessionId: number) => void;
+  @Prop() fetchSessions: () => Promise<void>;
 
   @Prop({ context: 'config' }) config: Config;
   @Prop({ connect: 'ion-alert-controller' }) alertCtrl: HTMLIonAlertControllerElement;
   @Prop({ connect: 'ion-loading-controller' }) loadingCtrl: HTMLIonLoadingControllerElement;
   @Prop({ connect: 'ion-modal-controller' }) modalCtrl: HTMLIonModalControllerElement;
 
-  @State() visibleSessions: Session[];
+  @State() visibleSessions: Session[] = [];
   @State() segment = 'all';
 
   @Watch('sessions')
@@ -38,7 +39,8 @@ export class PageSchedule {
     this.visibleSessions = getVisibleSessions(this.sessions);
   }
 
-  componentWillLoad() {
+  async componentWillLoad() {
+    await this.fetchSessions();
     this.setVisibleSessions();
   }
 
@@ -246,4 +248,4 @@ export class PageSchedule {
   }
 }
 
-Tunnel.injectProps(PageSchedule, ['sessions', 'addFavoriteSession', 'removeFavoriteSession', 'searchSessions']);
+Tunnel.injectProps(PageSchedule, ['sessions', 'addFavoriteSession', 'removeFavoriteSession', 'searchSessions', 'fetchSessions']);

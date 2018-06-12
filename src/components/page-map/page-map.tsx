@@ -11,7 +11,7 @@ declare var google: any;
 export class PageMap {
   @Prop() locations: LocationsState;
 
-  @Element() private el: HTMLElement;
+  @Element() el: HTMLStencilElement;
 
   async componentWillLoad() {
     await getGoogleMaps('AIzaSyB8pf6ZdFQj5qw7rc_HSGrhUwQKfIe9ICw');

@@ -1,4 +1,4 @@
-import { Component, Prop, State } from '@stencil/core';
+import { Component, Element, Prop, State } from '@stencil/core';
 import Tunnel from '../../providers/state-tunnel';
 import { checkPassword, checkUsername } from '../../providers/user-state';
 
@@ -7,6 +7,7 @@ import { checkPassword, checkUsername } from '../../providers/user-state';
   styleUrl: 'page-signup.css',
 })
 export class PageSignup {
+  @Element() el: HTMLStencilElement;
   @State() username = '';
   @State() usernameError = null;
   @State() password = '';

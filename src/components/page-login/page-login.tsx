@@ -1,4 +1,4 @@
-import { Component, Prop, State } from '@stencil/core';
+import { Component, Element, Prop, State } from '@stencil/core';
 import Tunnel from '../../providers/state-tunnel';
 import { checkPassword, checkUsername } from '../../providers/user-state';
 
@@ -8,6 +8,7 @@ import { checkPassword, checkUsername } from '../../providers/user-state';
   styleUrl: 'page-login.css',
 })
 export class PageLogin {
+  @Element() el: HTMLStencilElement;
   @Prop({connect: 'ion-nav'}) nav;
   @State() username = '';
   @State() usernameError = null;

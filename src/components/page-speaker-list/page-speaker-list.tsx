@@ -1,5 +1,5 @@
 import { Config } from '@ionic/core';
-import { Component, Prop } from '@stencil/core';
+import { Component, Element, Prop } from '@stencil/core';
 import { InAppBrowser } from '@ionic-native/in-app-browser';
 
 import Tunnel from '../../providers/state-tunnel';
@@ -11,6 +11,7 @@ import { SessionsState } from '../../providers/sessions-state';
   styleUrl: 'page-speaker-list.css'
 })
 export class PageSpeakerList {
+  @Element() el: HTMLStencilElement;
   @Prop({ connect: 'ion-action-sheet-controller' }) actionSheetCtrl: HTMLIonActionSheetControllerElement;
   @Prop({ context: 'config' }) config: Config;
   @Prop() speakers: SpeakersState;

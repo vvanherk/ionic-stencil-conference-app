@@ -1,4 +1,4 @@
-import { Component, Prop } from '@stencil/core';
+import { Component, Element, Prop } from '@stencil/core';
 import Tunnel from '../../providers/state-tunnel';
 
 @Component({
@@ -6,6 +6,7 @@ import Tunnel from '../../providers/state-tunnel';
   styleUrl: 'page-tutorial.css',
 })
 export class PageTutorial {
+  @Element() el: HTMLStencilElement;
   @Prop() showedTutorial: () => void;
 
   componentDidLoad() {

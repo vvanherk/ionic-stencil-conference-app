@@ -1,4 +1,4 @@
-import { Component, Prop } from '@stencil/core';
+import { Component, Element, Prop } from '@stencil/core';
 import Tunnel from '../../providers/state-tunnel';
 import { SpeakersState } from '../../providers/speakers-state';
 
@@ -7,6 +7,7 @@ import { SpeakersState } from '../../providers/speakers-state';
   styleUrl: 'page-speaker-detail.css'
 })
 export class PageSpeakerDetail {
+  @Element() el: HTMLStencilElement;
   @Prop() speakerId: number;
   @Prop() speakers: SpeakersState;
   @Prop() fetchSpeakers: () => Promise<void>;

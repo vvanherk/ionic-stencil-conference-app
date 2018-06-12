@@ -1,10 +1,11 @@
-import { Component, Prop } from '@stencil/core';
+import { Component, Element, Prop } from '@stencil/core';
 
 @Component({
   tag: 'page-about',
   styleUrl: 'page-about.css',
 })
 export class PageAbout {
+  @Element() el: HTMLElement;
 
   @Prop({ connect: 'ion-popover-controller' }) popoverCtrl: HTMLIonPopoverControllerElement;
 
