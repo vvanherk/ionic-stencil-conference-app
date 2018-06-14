@@ -88,4 +88,4 @@ export class PageSignup {
   }
 }
 
-Tunnel.injectProps(PageSignup, 'signUpUser');
+Tunnel.injectProps(PageSignup, ['signUpUser']);

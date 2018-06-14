@@ -37,6 +37,7 @@ import {
   LocationsState,
 } from './providers/locations-state';
 import {
+  Session,
   SessionsState,
 } from './providers/sessions-state';
 import {
@@ -284,9 +285,7 @@ declare global {
 
   namespace StencilComponents {
     interface PageSchedule {
-      'addFavoriteSession': (sessionId: number) => void;
       'fetchSessions': () => Promise<void>;
-      'removeFavoriteSession': (sessionId: number) => void;
       'searchSessions': (searchText: string) => void;
       'sessions': SessionsState;
     }
@@ -311,9 +310,7 @@ declare global {
   }
   namespace JSXElements {
     export interface PageScheduleAttributes extends HTMLAttributes {
-      'addFavoriteSession'?: (sessionId: number) => void;
       'fetchSessions'?: () => Promise<void>;
-      'removeFavoriteSession'?: (sessionId: number) => void;
       'searchSessions'?: (searchText: string) => void;
       'sessions'?: SessionsState;
     }
@@ -565,6 +562,45 @@ declare global {
   namespace JSXElements {
     export interface PageTutorialAttributes extends HTMLAttributes {
       'showedTutorial'?: () => void;
+    }
+  }
+}
+
+
+declare global {
+
+  namespace StencilComponents {
+    interface SessionSchedule {
+      'addFavoriteSession': (sessionId: number) => void;
+      'favoriteSessions': number[];
+      'removeFavoriteSession': (sessionId: number) => void;
+      'sessionList': Session[];
+    }
+  }
+
+  interface HTMLSessionScheduleElement extends StencilComponents.SessionSchedule, HTMLStencilElement {}
+
+  var HTMLSessionScheduleElement: {
+    prototype: HTMLSessionScheduleElement;
+    new (): HTMLSessionScheduleElement;
+  };
+  interface HTMLElementTagNameMap {
+    'session-schedule': HTMLSessionScheduleElement;
+  }
+  interface ElementTagNameMap {
+    'session-schedule': HTMLSessionScheduleElement;
+  }
+  namespace JSX {
+    interface IntrinsicElements {
+      'session-schedule': JSXElements.SessionScheduleAttributes;
+    }
+  }
+  namespace JSXElements {
+    export interface SessionScheduleAttributes extends HTMLAttributes {
+      'addFavoriteSession'?: (sessionId: number) => void;
+      'favoriteSessions'?: number[];
+      'removeFavoriteSession'?: (sessionId: number) => void;
+      'sessionList'?: Session[];
     }
   }
 }

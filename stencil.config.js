@@ -1,4 +1,5 @@
 exports.config = {
+  cache: false,
   globalStyle: 'src/global.css'
 };
 

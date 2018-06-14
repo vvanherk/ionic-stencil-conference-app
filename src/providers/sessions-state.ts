@@ -145,7 +145,7 @@ export interface Group {
 export function groupByStartTime(sessions: Session[]) {
   return sessions
     .sort((a, b) => (
-      (new Date(b.dateTimeStart)).getTime() - (new Date(a.dateTimeStart)).getTime()
+      (new Date(a.dateTimeStart)).getTime() - (new Date(b.dateTimeStart)).getTime()
     ))
     .reduce((groups, session) => {
       const starterHour = new Date(session.dateTimeStart);
