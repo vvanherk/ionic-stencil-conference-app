@@ -34,6 +34,9 @@ export class PageSignup {
     }
 
     this.signUpUser(this.username);
+
+    const ionRouter = document.querySelector('ion-router');
+    ionRouter.push('/schedule');
   }
 
   render() {

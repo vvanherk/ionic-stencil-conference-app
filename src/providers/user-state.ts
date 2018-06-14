@@ -10,7 +10,7 @@ export interface UserActions {
   logInUser: (userName: string) => void;
   setUsername: (userName: string) => void;
   logOutUser: () => void;
-  showedTutorial: () => void;
+  toggleTutorial: () => void;
 }
 
 export const defaultState: UserState = {
@@ -24,14 +24,16 @@ export const actions: UserActions = {
   signUpUser(userName: string) {
     this.user = {
       ...this.user,
-      userName
+      userName,
+      isAuthenticated: true
     };
   },
 
   logInUser(userName: string) {
     this.user = {
       ...this.user,
-      userName
+      userName,
+      isAuthenticated: true
     };
   },
 
@@ -48,10 +50,10 @@ export const actions: UserActions = {
     };
   },
 
-  showedTutorial() {
+  toggleTutorial() {
     this.user = {
       ...this.user,
-      hasSeenTutorial: true
+      hasSeenTutorial: !this.user.hasSeenTutorial
     };
   }
 };

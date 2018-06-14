@@ -59,7 +59,7 @@ export class AppRoot {
     };
 
     if (this.isServer) {
-      this.appState.showedTutorial();
+      this.appState.toggleTutorial();
     }
   }
 
@@ -74,7 +74,7 @@ export class AppRoot {
   renderRouter() {
     return (
       <ion-router useHash={false}>
-        <ion-route-redirect from="/" to={this.appState.user.hasSeenTutorial ? '/schedule' : '/tutorial'} />
+        <ion-route-redirect from="/" to={'/schedule'} />
 
         <ion-route component="page-tabs">
           <ion-route url="/schedule" component="tab-schedule">
@@ -93,7 +93,6 @@ export class AppRoot {
           <ion-route url="/about" component="page-about"></ion-route>
         </ion-route>
 
-        <ion-route url="/tutorial" component="page-tutorial"></ion-route>
         <ion-route url="/login" component="page-login"></ion-route>
         <ion-route url="/account" component="page-account"></ion-route>
         <ion-route url="/signup" component="page-signup"></ion-route>
@@ -114,6 +113,12 @@ export class AppRoot {
 
     return (
       <Tunnel.Provider state={this.appState}>
+        { (this.appState.user.hasSeenTutorial)
+        ?
+        <ion-app>
+          <page-tutorial/>
+        </ion-app>
+        :
         <ion-app>
           {this.renderRouter()}
           <ion-split-pane>
@@ -133,9 +138,7 @@ export class AppRoot {
                     <ion-menu-toggle autoHide={false}>
                       <ion-item href={p.url}>
                         <ion-icon slot="start" name={p.icon}></ion-icon>
-                        <ion-label>
-                          {p.title}
-                        </ion-label>
+                        <ion-label>{p.title}</ion-label>
                       </ion-item>
                     </ion-menu-toggle>
                   )}
@@ -144,22 +147,19 @@ export class AppRoot {
                 <ion-list>
                   <ion-list-header>
                     Account
-                    </ion-list-header>
+                  </ion-list-header>
 
                   <ion-menu-toggle autoHide={false}>
                     {this.user.isAuthenticated
-                      ? <ion-item href="account">
+                      ?
+                      <ion-item href="account">
                         <ion-icon slot="start" name="person"></ion-icon>
-                        <ion-label>
-                          Account
-                            </ion-label>
+                        <ion-label>Account</ion-label>
                       </ion-item>
-
-                      : <ion-item href="login">
+                      :
+                      <ion-item href="login">
                         <ion-icon slot="start" name="log-in"></ion-icon>
-                        <ion-label>
-                          Login
-                            </ion-label>
+                        <ion-label>Login</ion-label>
                       </ion-item>
                     }
                   </ion-menu-toggle>
@@ -167,26 +167,21 @@ export class AppRoot {
                   <ion-menu-toggle autoHide={false}>
                     <ion-item href="support" button>
                       <ion-icon slot="start" name="help"></ion-icon>
-                      <ion-label>
-                        Support
-                        </ion-label>
+                      <ion-label>Support</ion-label>
                     </ion-item>
                   </ion-menu-toggle>
 
                   <ion-menu-toggle autoHide={false}>
                     {this.user.isAuthenticated
-                      ? <ion-item onClick={() => this.appState.logOutUser()} button>
+                      ?
+                      <ion-item onClick={() => this.appState.logOutUser()} button>
                         <ion-icon slot="start" name="log-out"></ion-icon>
-                        <ion-label>
-                          Logout
-                            </ion-label>
+                        <ion-label>Logout</ion-label>
                       </ion-item>
-
-                      : <ion-item href="signup" button>
+                      :
+                      <ion-item href="signup" button>
                         <ion-icon slot="start" name="person-add"></ion-icon>
-                        <ion-label>
-                          Signup
-                            </ion-label>
+                        <ion-label>Signup</ion-label>
                       </ion-item>
                     }
                   </ion-menu-toggle>
@@ -197,7 +192,7 @@ export class AppRoot {
                     Tutorial
                   </ion-list-header>
                   <ion-menu-toggle autoHide={false}>
-                    <ion-item href="tutorial">
+                    <ion-item href="#" onClick={e => { e.preventDefault(); this.appState.toggleTutorial(); }}>
                       <ion-icon slot="start" name="hammer"></ion-icon>
                       <ion-label>Show Tutorial</ion-label>
                     </ion-item>
@@ -209,6 +204,7 @@ export class AppRoot {
             <ion-router-outlet animated={false} main></ion-router-outlet>
           </ion-split-pane>
         </ion-app>
+        }
       </Tunnel.Provider>
     );
   }

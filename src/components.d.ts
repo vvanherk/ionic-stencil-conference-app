@@ -538,7 +538,7 @@ declare global {
 
   namespace StencilComponents {
     interface PageTutorial {
-      'showedTutorial': () => void;
+      'toggleTutorial': () => void;
     }
   }
 
@@ -561,7 +561,7 @@ declare global {
   }
   namespace JSXElements {
     export interface PageTutorialAttributes extends HTMLAttributes {
-      'showedTutorial'?: () => void;
+      'toggleTutorial'?: () => void;
     }
   }
 }

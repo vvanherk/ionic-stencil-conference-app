@@ -9,7 +9,6 @@ import { checkPassword, checkUsername } from '../../providers/user-state';
 })
 export class PageLogin {
   @Element() el: HTMLStencilElement;
-  @Prop({connect: 'ion-nav'}) nav;
   @State() username = '';
   @State() usernameError = null;
   @State() password = '';
@@ -25,9 +24,8 @@ export class PageLogin {
     this.password = ev.target.value;
   }
 
-  async onLogin(e) {
+  onLogin = async (e) => {
     e.preventDefault();
-    const navCtrl: HTMLIonNavElement = await (this.nav as any).componentOnReady();
 
     this.usernameError = checkUsername(this.username);
     this.passwordError = checkPassword(this.password);
@@ -37,14 +35,16 @@ export class PageLogin {
     }
 
     this.logInUser(this.username);
-    navCtrl.setRoot('page-tabs', null , {animated: true, direction: 'forward'});
+
+    const ionRouter = document.querySelector('ion-router');
+    ionRouter.push('/schedule');
   }
 
-  async onSignup(e) {
+  onSignup = async (e) => {
     e.preventDefault();
-    const navCtrl: HTMLIonNavElement = await (this.nav as any).componentOnReady();
+    const ionRouter = document.querySelector('ion-router');
 
-    navCtrl.push('page-signup');
+    ionRouter.push('/signup');
   }
 
   render() {
@@ -91,10 +91,10 @@ export class PageLogin {
 
           <ion-row responsive-sm>
             <ion-col>
-              <ion-button onClick={(e) => this.onLogin(e)} type="submit" expand="block">Login</ion-button>
+              <ion-button onClick={this.onLogin} type="submit" expand="block">Login</ion-button>
             </ion-col>
             <ion-col>
-              <ion-button onClick={(e) => this.onSignup(e)} color="light" expand="block">Signup</ion-button>
+              <ion-button onClick={this.onSignup} color="light" expand="block">Signup</ion-button>
             </ion-col>
           </ion-row>
         </form>

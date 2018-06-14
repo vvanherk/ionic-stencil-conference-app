@@ -7,10 +7,11 @@ import Tunnel from '../../providers/state-tunnel';
 })
 export class PageTutorial {
   @Element() el: HTMLStencilElement;
-  @Prop() showedTutorial: () => void;
+  @Prop() toggleTutorial: () => void;
 
-  componentDidLoad() {
-    this.showedTutorial();
+  hideTutorial = (e) => {
+    e.preventDefault();
+    this.toggleTutorial();
   }
 
   render() {
@@ -18,7 +19,7 @@ export class PageTutorial {
       <ion-header no-border>
         <ion-toolbar class="tutorial-transparent">
           <ion-buttons slot="end">
-            <ion-button color="primary" href="/schedule">Skip</ion-button>
+            <ion-button color="primary" href="#" onClick={this.hideTutorial}>Skip</ion-button>
           </ion-buttons>
         </ion-toolbar>
       </ion-header>,
@@ -55,7 +56,7 @@ export class PageTutorial {
           <ion-slide>
             <img src="assets/img/ica-slidebox-img-4.png" class="slide-image"/>
             <h2 class="slide-title">Ready to Play?</h2>
-            <ion-button fill="clear" href="/schedule">
+            <ion-button fill="clear" href="#" onClick={this.hideTutorial}>
               Continue
               <ion-icon slot="end" name="arrow-forward"></ion-icon>
             </ion-button>
@@ -67,4 +68,4 @@ export class PageTutorial {
   }
 }
 
-Tunnel.injectProps(PageTutorial, ['showedTutorial']);
+Tunnel.injectProps(PageTutorial, ['toggleTutorial']);
